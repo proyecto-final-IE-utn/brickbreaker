@@ -1,34 +1,34 @@
 import pygame
-BLACK = (0,0,0)
-
-class Paddle(pygame.sprite.Sprite):
-    #This class represents a paddle. It derives from the "Sprite" class in Pygame.
-
-    def __init__(self, color, width, height):
-        # Call the parent class (Sprite) constructor
-        super().__init__()
-
-        # Pass in the color of the paddle, its width and height.
-        # Set the background color and set it to be transparent
-        self.image = pygame.Surface([width, height])
-        self.image.fill(BLACK)
-        self.image.set_colorkey(BLACK)
-
-        # Draw the paddle (a rectangle!)
-        pygame.draw.rect(self.image, color, [0, 0, width, height])
-
-        # Fetch the rectangle object that has the dimensions of the image.
-        self.rect = self.image.get_rect()
 
 
-    def moveLeft(self, pixels):
-        self.rect.x -= pixels
-	    #Check that you are not going too far (off the screen)
-        if self.rect.x < 0:
-          self.rect.x = 0
+class Paddle():
+    def __init__(self, paddleX, screen, scr_height, scr_width, paddle_color):
+        self.screen = screen
+        self.scr_height = scr_height
+        self.scr_width = scr_width
+        self.paddle_color = paddle_color
+        self.paddleX = paddleX
+        self.paddleY = int(scr_height*0.95)
+        self.length = 200
 
-    def moveRight(self, pixels):
-        self.rect.x += pixels
-        #Check that you are not going too far (off the screen)
-        if self.rect.x > 700:
-          self.rect.x = 700
+    def show(self):
+        thickness = 10
+        pygame.draw.rect(self.screen, self.paddle_color, ((
+            self.paddleX, self.paddleY), (self.length, thickness)))
+
+    def move_left(self):
+        self.velocity = 15
+        self.paddleX += -self.velocity
+
+    def move_right(self):
+        self.velocity = 15
+        self.paddleX += self.velocity
+
+    def stop(self):
+        self.velocity = 0
+
+    def boundaries(self):
+        if self.paddleX >= (self.scr_width - self.length):
+            self.paddleX = self.scr_width - self.length
+        elif self.paddleX <= 0:
+            self.paddleX = 0

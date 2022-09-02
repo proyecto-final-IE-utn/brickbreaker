@@ -1,158 +1,117 @@
-#Import the pygame library and initialise the game engine
 import pygame
-#Let's import the Paddle Class & the Ball Class
-from .paddle import Paddle
-from .ball import Ball
-from .brick import Brick
+from paddle import Paddle
+from ball import Ball
+from brick import Bricks
+from button import Button
+from breaker import brick_collision, show_gameover
 
 
 def brick_start():
     pygame.init()
+    scr_width = 800
+    scr_height = 600
+    screen = pygame.display.set_mode((scr_width, scr_height))
+    pygame.display.set_caption("Brick Breaker")
 
-    # Define some colors
-    WHITE = (255,255,255)
-    DARKBLUE = (36,90,190)
-    LIGHTBLUE = (0,176,240)
-    RED = (255,0,0)
-    ORANGE = (255,100,0)
-    YELLOW = (255,255,0)
+    # COLORS IN GAME
+    bkgrd_color = (255, 255, 255)
+    ball_color = (148, 0, 211)
+    paddle_color = (80, 50, 30)
+    brick_color = [(200, 50, 80), (230, 170, 80), (60, 230, 220), (180, 210, 80)]
 
-    score = 0
-    lives = 3
 
-    # Open a new window
-    size = (800, 600)
-    screen = pygame.display.set_mode(size)
-    pygame.display.set_caption("Breakout Game")
-
-    #This will be a list that will contain all the sprites we intend to use in our game.
-    all_sprites_list = pygame.sprite.Group()
-
-    #Create the Paddle
-    paddle = Paddle(LIGHTBLUE, 100, 10)
-    paddle.rect.x = 350
-    paddle.rect.y = 560
-
-    #Create the ball sprite
-    ball = Ball(WHITE,10,10)
-    ball.rect.x = 345
-    ball.rect.y = 195
-
-    all_bricks = pygame.sprite.Group()
-    for i in range(7):
-        brick = Brick(RED,80,30)
-        brick.rect.x = 60 + i* 100
-        brick.rect.y = 60
-        all_sprites_list.add(brick)
-        all_bricks.add(brick)
-    for i in range(7):
-        brick = Brick(ORANGE,80,30)
-        brick.rect.x = 60 + i* 100
-        brick.rect.y = 100
-        all_sprites_list.add(brick)
-        all_bricks.add(brick)
-    for i in range(7):
-        brick = Brick(YELLOW,80,30)
-        brick.rect.x = 60 + i* 100
-        brick.rect.y = 140
-        all_sprites_list.add(brick)
-        all_bricks.add(brick)
-
-    # Add the paddle and the ball to the list of sprites
-    all_sprites_list.add(paddle)
-    all_sprites_list.add(ball)
-
-    # The loop will carry on until the user exits the game (e.g. clicks the close button).
-    carryOn = True
-
-    # The clock will be used to control how fast the screen updates
+    # have to initial here because there is a reference of paddle in Ball object
+    paddle = Paddle(int(scr_width*0.45), screen, scr_height, scr_width, paddle_color)
     clock = pygame.time.Clock()
+    while True:
+        ball = Ball(int(scr_width/2), int(scr_height*0.8), paddle, ball_color, screen, scr_width)
+        brick = Bricks(brick_color, scr_height, scr_width, screen, bkgrd_color)
+        brick_list = brick.clone()
+        brick_breaked = []
+        over = False
+        clicked_replay = False
 
-    # -------- Main Program Loop -----------
-    while carryOn:
-        # --- Main event loop
-        for event in pygame.event.get(): # User did something
-            if event.type == pygame.QUIT: # If user clicked close
-                carryOn = False # Flag that we are done so we exit this loop
+        # paddle movement switches
+        key_left = False
+        key_right = False
 
-        #Moving the paddle when the use uses the arrow keys
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            paddle.moveLeft(5)
-        if keys[pygame.K_RIGHT]:
-            paddle.moveRight(5)
+        while True:
 
-        # --- Game logic should go here
-        all_sprites_list.update()
+            clock.tick(30)
 
-        #Check if the ball is bouncing against any of the 4 walls:
-        if ball.rect.x>=790:
-            ball.velocity[0] = -ball.velocity[0]
-        if ball.rect.x<=0:
-            ball.velocity[0] = -ball.velocity[0]
-        if ball.rect.y>590:
-            ball.velocity[1] = -ball.velocity[1]
-            lives -= 1
-            if lives == 0:
-                #Display Game Over Message for 3 seconds
-                font = pygame.font.Font(None, 74)
-                text = font.render("GAME OVER", 1, WHITE)
-                screen.blit(text, (250,300))
-                pygame.display.flip()
-                pygame.time.wait(3000)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        key_left = True
+                    if event.key == pygame.K_RIGHT:
+                        key_right = True
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        paddle.stop()
+                        key_left = False
+                    if event.key == pygame.K_RIGHT:
+                        paddle.stop()
+                        key_right = False
 
-                #Stop the Game
-                carryOn=False
+            # GAME LOGIC
 
-        if ball.rect.y<40:
-            ball.velocity[1] = -ball.velocity[1]
+            # paddle movement switches
+            if key_left == True:
+                paddle.move_left()
+            if key_right == True:
+                paddle.move_right()
 
-        #Detect collisions between the ball and the paddles
-        if pygame.sprite.collide_mask(ball, paddle):
-            ball.rect.x -= ball.velocity[0]
-            ball.rect.y -= ball.velocity[1]
-            ball.bounce()
+            # ball machanics
+            ball.move()
+            ball.boundries()
+            ball.limit_vel()
+            #  must review code in the first inquality statement 
+            if paddle.paddleY + 10 > (ball.ballY + ball.ball_radius) > paddle.paddleY and ball.ballX > paddle.paddleX and ball.ballX < (paddle.paddleX + paddle.length):
+                ball.collision_change()
+            # brick collision
+            brick_collision(brick, brick_list, brick_breaked, ball)
 
-        #Check if there is the ball collides with any of bricks
-        brick_collision_list = pygame.sprite.spritecollide(ball,all_bricks,False)
-        for brick in brick_collision_list:
-            ball.bounce()
-            score += 1
-            brick.kill()
-            if len(all_bricks)==0:
-            #Display Level Complete Message for 3 seconds
-                font = pygame.font.Font(None, 74)
-                text = font.render("LEVEL COMPLETE", 1, WHITE)
-                screen.blit(text, (200,300))
-                pygame.display.flip()
-                pygame.time.wait(3000)
+            # paddle boundries
+            paddle.boundaries()
+            if ball.ballY > scr_height:
+                show_gameover(screen)
+                over = True
+                # REPLAY BUTTON
+                b = Button(screen, (80, 45, 200), (200, 250, 255),
+                        (260, 350), (150, 60), "REPLAY", 30)
+                state = 'original'
+                while True:
+                    b.show()
+                    for event in pygame.event.get():
+                        if b.isOverMouse() == True:
+                            if event.type == pygame.MOUSEBUTTONUP:
+                                clicked_replay = True
+                            state = 'changed'
+                        elif b.isOverMouse() == False:
+                            state = 'original'
+                        if event.type == pygame.QUIT:
+                            pygame.quit()
+                    if state == 'changed':
+                        b.changeColor((80, 240, 80), (14, 37, 100))
+                    if clicked_replay == True:
+                        break
+                    pygame.display.update()
 
-                #Stop the Game
-                carryOn=False
+            # DISPLAY THINGS
 
-        # --- Drawing code should go here
-        # First, clear the screen to dark blue.
-        screen.fill(DARKBLUE)
-        pygame.draw.line(screen, WHITE, [0, 38], [800, 38], 2)
+            screen.fill(bkgrd_color)
+            paddle.show()
+            brick.show()
+            for brk in brick_breaked:
+                brick.update(brk)
+            # brick_collision(brick, brick_list, ball)
+            ball.show()
+            if over == True:
+                break
 
-        #Display the score and the number of lives at the top of the screen
-        font = pygame.font.Font(None, 34)
-        text = font.render("Score: " + str(score), 1, WHITE)
-        screen.blit(text, (20,10))
-        text = font.render("Lives: " + str(lives), 1, WHITE)
-        screen.blit(text, (650,10))
-
-        #Now let's draw all the sprites in one go. (For now we only have 2 sprites!)
-        all_sprites_list.draw(screen)
-
-        # --- Go ahead and update the screen with what we've drawn.
-        pygame.display.flip()
-
-        # --- Limit to 60 frames per second
-        clock.tick(60)
-
-    #Once we have exited the main program loop we can stop the game engine:
-    pygame.quit()
+            pygame.display.update()
 
 
 if __name__ == "__main__":

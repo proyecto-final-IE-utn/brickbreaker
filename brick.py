@@ -1,21 +1,42 @@
 import pygame
-BLACK = (0,0,0)
+import random
 
-class Brick(pygame.sprite.Sprite):
-    #This class represents a brick. It derives from the "Sprite" class in Pygame.
 
-    def __init__(self, color, width, height):
-        # Call the parent class (Sprite) constructor
-        super().__init__()
+class Bricks():
+    def __init__(self, brick_color, scr_heigth, scr_width, screen, bkgrd_color):
+        self.rows = 4
+        self.rows_bricks = 5
+        self.screen = screen
+        self.scr_width = scr_width
+        self.scr_heigth = scr_heigth
+        self.bkgrd_color = bkgrd_color
+        self.brick_color = brick_color
+        self.length = int(self.scr_width*0.8)//self.rows_bricks
+        self.width = 40
+        self.spacing = 4
+        self.coordinates = []
+        self.random_color = []
+        for i in range(10, self.rows*(self.width), self.width):
+            for j in range(int(self.scr_width*0.1), int(self.scr_width*0.9 - self.length)+1, self.length):
+                self.coordinates.append([j, i])
+                self.random_color.append(random.choice(self.brick_color))
 
-        # Pass in the color of the brick, and its x and y position, width and height.
-        # Set the background color and set it to be transparent
-        self.image = pygame.Surface([width, height])
-        self.image.fill(BLACK)
-        self.image.set_colorkey(BLACK)
+    def show(self):
+        num = 1
+        color_index = 1
+        for item in self.coordinates:
+            pygame.draw.rect(self.screen, self.brick_color[color_index-1], ((
+                item[0], item[1]), (self.length-self.spacing, self.width-self.spacing)))
+            num += 1
+            if num > color_index * self.rows_bricks:
+                color_index += 1
 
-        # Draw the brick (a rectangle!)
-        pygame.draw.rect(self.image, color, [0, 0, width, height])
+    def clone(self):
+        brick_list = []
+        for item in self.coordinates:
+            brick_list.append(item)
+        return brick_list
 
-        # Fetch the rectangle object that has the dimensions of the image.
-        self.rect = self.image.get_rect()
+    def update(self, cordinate):
+        pygame.draw.rect(self.screen, self.bkgrd_color, (cordinate,
+                                               (self.length-self.spacing, self.width-self.spacing)))
