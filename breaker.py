@@ -1,5 +1,4 @@
 import pygame
-from button import Button
 
 
 def brick_collision(brick, brick_list, brick_breaked, ball):

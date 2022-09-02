@@ -1,12 +1,7 @@
 import pygame
 
-pygame.init()
-screen = pygame.display.set_mode((600, 600))
-screen.fill((255, 255, 255))
-
 
 class Button():
-
     def __init__(self, screen, colorButton, colorText, cordinates=(0, 0), dimensions=(100, 100), text='Click Here', textSize=10):
         self.screen = screen
         self.colorButton = colorButton

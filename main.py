@@ -1,9 +1,9 @@
 import pygame
-from paddle import Paddle
-from ball import Ball
-from brick import Bricks
-from button import Button
-from breaker import brick_collision, show_gameover
+from .paddle import Paddle
+from .ball import Ball
+from .brick import Bricks
+from .button import Button
+from .breaker import brick_collision, show_gameover
 
 
 def brick_start():
@@ -110,7 +110,6 @@ def brick_start():
             ball.show()
             if over == True:
                 break
-
             pygame.display.update()
 
 
