@@ -1,9 +1,9 @@
 #Import the pygame library and initialise the game engine
 import pygame
 #Let's import the Paddle Class & the Ball Class
-from paddle import Paddle
-from ball import Ball
-from brick import Brick
+from .paddle import Paddle
+from .ball import Ball
+from .brick import Brick
 
 
 def brick_start():
@@ -154,4 +154,6 @@ def brick_start():
     #Once we have exited the main program loop we can stop the game engine:
     pygame.quit()
 
-brick_start()
+
+if __name__ == "__main__":
+    brick_start()
