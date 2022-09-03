@@ -24,9 +24,7 @@ def brick_collision(brick, brick_list, brick_breaked, ball):
             brick_list.pop(index)
 
 
-def show_gameover(screen):
-    global scr_height
-    global scr_width
+def show_gameover(screen, scr_height, scr_width):
     text = pygame.font.Font("freesansbold.ttf", int(scr_height*0.1))
-    gameover = text.render("GAME OVER", True, (255, 23, 20))
+    gameover = text.render("Vuelve a Intentarlo!", True, (255, 23, 20))
     screen.blit(gameover, (int(scr_width*0.25), int(scr_height*0.4)))

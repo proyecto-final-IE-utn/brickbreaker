@@ -3,6 +3,7 @@ from .paddle import Paddle
 from .ball import Ball
 from .brick import Bricks
 from .button import Button
+from .lives import Lives
 from .breaker import brick_collision, show_gameover
 
 
@@ -10,6 +11,7 @@ def brick_start():
     pygame.init()
     scr_width = 800
     scr_height = 600
+    number_lives = 3
     screen = pygame.display.set_mode((scr_width, scr_height))
     pygame.display.set_caption("Brick Breaker")
 
@@ -27,6 +29,9 @@ def brick_start():
         ball = Ball(int(scr_width/2), int(scr_height*0.8), paddle, ball_color, screen, scr_width)
         brick = Bricks(brick_color, scr_height, scr_width, screen, bkgrd_color)
         brick_list = brick.clone()
+
+        lives = Lives(scr_height,scr_width,screen,number_lives)
+
         brick_breaked = []
         over = False
         clicked_replay = False
@@ -76,11 +81,11 @@ def brick_start():
             # paddle boundries
             paddle.boundaries()
             if ball.ballY > scr_height:
-                show_gameover(screen)
+                show_gameover(screen,scr_height,scr_width)
                 over = True
                 # REPLAY BUTTON
                 b = Button(screen, (80, 45, 200), (200, 250, 255),
-                        (260, 350), (150, 60), "REPLAY", 30)
+                        (260, 350), (150, 60), "A Jugar", 30)
                 state = 'original'
                 while True:
                     b.show()
@@ -91,8 +96,9 @@ def brick_start():
                             state = 'changed'
                         elif b.isOverMouse() == False:
                             state = 'original'
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_ESCAPE:
+                                pygame.quit()
                     if state == 'changed':
                         b.changeColor((80, 240, 80), (14, 37, 100))
                     if clicked_replay == True:
@@ -108,6 +114,7 @@ def brick_start():
                 brick.update(brk)
             # brick_collision(brick, brick_list, ball)
             ball.show()
+            lives.show()
             if over == True:
                 break
             pygame.display.update()
